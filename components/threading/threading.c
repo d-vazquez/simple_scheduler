@@ -1,8 +1,9 @@
 
 
 #include <stdint.h>
+#include "threading.h"
 #include "cpu_tiva.h"
-
+#include "idle_task.h"
 
 //*****************************************************************************
 //
@@ -20,8 +21,10 @@
 //
 //*****************************************************************************
 static uint32_t get_Scheduler_currentTask();
-static void set_Scheduler_currentTask(uint32_t param);
+static void     set_Scheduler_currentTask(uint32_t param);
 static uint32_t get_Scheduler_nextTask();
+static void     Scheduler_Tick_Init();
+static void     Scheduler_Tick_EnableInt();
 
 
 //*****************************************************************************
@@ -34,19 +37,13 @@ typedef struct
 {
     uint32_t *TaskStack; // Stack is always first element
     void    (*Task )();
+    char     *identifier;
     uint32_t Attributes0;
     uint32_t Attributes1;
     uint32_t Attributes2;
     uint32_t Attributes3;
     uint32_t Attributes4;
 } TCB_Type;
-
-// Convert char[4] to uint32
-typedef union
-{
-    uint32_t    as_uint32;
-    char        as_char[4] ;
-} uint32_to_char;
 
 // Scheduler properties
 typedef struct
@@ -79,8 +76,6 @@ static uint32_t next_task;
 static uint32_t scheduler_TCB_Size;
 static TCB_Type *scheduler_TCB;
 
-// Dummy value to fill stack as witness
-uint32_to_char init_stack_value = { .as_char = "STCK" };
 
 
 //*****************************************************************************
@@ -90,17 +85,27 @@ uint32_to_char init_stack_value = { .as_char = "STCK" };
 //*****************************************************************************
 void Scheduler_Init()
 {
-    // TODO
+    // Setup CPU systick
+    Scheduler_Tick_Init();
+
+    // Create idle task
+    Scheduler_Task_Create(  IDLE_TASK_NAME,
+                            idle_Task,
+                            idle_task_stack,
+                            IDLE_TASK_STACK_SIZE);
 }
 
 
-void Scheduler_Task_Create(void (*fTask )(), uint32_t *TaskStack, uint32_t StackSize)
+void Scheduler_Task_Create(char* identifier, void (*fTask )(), uint32_t *TaskStack, uint32_t StackSize)
 {
     ENTER_CRITICAL_SECTION
 
     // Check we are not our of Thread count
     if (scheduler.TaskCount < MAX_THREADS)
     {
+        // Pass task name
+        scheduler.TCB[scheduler.TaskCount].identifier = identifier;
+
         // Assign task function to TCB
         scheduler.TCB[scheduler.TaskCount].Task = fTask;
 
@@ -108,7 +113,7 @@ void Scheduler_Task_Create(void (*fTask )(), uint32_t *TaskStack, uint32_t Stack
         // Help us see what stack has been touched
         for (uint32_t indx = 0; indx < StackSize; indx++)
         {
-            TaskStack[indx] = init_stack_value.as_uint32;
+            TaskStack[indx] = 0xA5A5A5A5;
         }
 
         // Start task stack, simulating as if it came from an exception (ISR).
@@ -148,6 +153,11 @@ void Scheduler_Task_Create(void (*fTask )(), uint32_t *TaskStack, uint32_t Stack
 void Scheduler_Tick_Init()
 {
     CPU_SysTick_Init();
+}
+
+
+void Scheduler_Tick_EnableInt()
+{
     CPU_SysTick_EnableInt();
 }
 
@@ -156,8 +166,8 @@ void Scheduler_Start()
 {
     ENTER_CRITICAL_SECTION
 
-    // Init Tick framework
-    Scheduler_Tick_Init();
+    // Enable Interruptions for Tick
+    Scheduler_Tick_EnableInt();
 
     // Cache TCB info for context switch
     scheduler_TCB_Size = scheduler.TCB_Size;

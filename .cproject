@@ -52,6 +52,7 @@
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/components/log}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/components/SSD1306}"/>
 									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/components/threading}"/>
+									<listOptionValue builtIn="false" value="${workspace_loc:/${ProjName}/Tasks}"/>
 									<listOptionValue builtIn="false" value="${SW_ROOT}"/>
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}"/>
 									<listOptionValue builtIn="false" value="${CG_TOOL_INCLUDE_PATH}"/>
@@ -64,6 +65,7 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.PREPROC_MODE.1286889972" name="Mode" superClass="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.PREPROC_MODE" value="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.PREPROC_MODE.automatic" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.ASM_FLAGS.1009721629" name="Assembler flags (-Xassembler)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.ASM_FLAGS" valueType="stringList"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.OTHER_FLAGS.1324748232" name="Miscellaneous flags" superClass="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.OTHER_FLAGS" valueType="stringList"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.WARNINGS_TOERRORS.578707042" name="Treat all warnings as errors (-Werror)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compilerID.WARNINGS_TOERRORS" value="true" valueType="boolean"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compiler.inputType__C_SRCS.1640600236" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compiler.inputType__C_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compiler.inputType__CPP_SRCS.945195918" name="C++ Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compiler.inputType__CPP_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compiler.inputType__ASM_SRCS.1536660899" name="Assembly Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_GNU_9.0.compiler.inputType__ASM_SRCS"/>
