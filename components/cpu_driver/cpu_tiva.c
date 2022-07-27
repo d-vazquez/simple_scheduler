@@ -12,6 +12,7 @@
 #define CPU_CLOCK                       80000000u
 #define CPU_CYCLE_TO_MS(x)              (x*(CPU_CLOCK/1000u))
 
+extern void Scheduler_Tick_process(void);
 
 void CPU_Clk_Init()
 {
