@@ -16,15 +16,14 @@
 // Definitions
 //
 //*****************************************************************************
-#define BLUE_LED_GPIO   GPIO_PIN_2
-#define TASK_PERIOD     500
-
+#define RED_LED_GPIO    GPIO_PIN_1
+#define TASK_PERIOD     1000
 //*****************************************************************************
 //
 // Internal functions
 //
 //*****************************************************************************
-static void blue_led_InitHW(void);
+static void red_led_InitHW(void);
 
 
 //*****************************************************************************
@@ -46,12 +45,12 @@ static void blue_led_InitHW(void);
 // Functions
 //
 //*****************************************************************************
-void blue_led_Task()
+void red_led_Task()
 {
     uint64_t current_tick = get_Scheduler_TickCount();
     uint64_t timeout_tick = get_Scheduler_TickCount() + TASK_PERIOD;
 
-    blue_led_InitHW();
+    red_led_InitHW();
 
     while(1)
     {
@@ -64,15 +63,15 @@ void blue_led_Task()
             // critical section
             CPU_disableInterrupts();
 
-            uint32_t toogle = (GPIOPinRead(GPIO_PORTF_BASE, BLUE_LED_GPIO)) ? 0x00 : BLUE_LED_GPIO;
-            GPIOPinWrite(GPIO_PORTF_BASE, BLUE_LED_GPIO , toogle);
+            uint32_t toogle = (GPIOPinRead(GPIO_PORTF_BASE, RED_LED_GPIO)) ? 0x00 : RED_LED_GPIO;
+            GPIOPinWrite(GPIO_PORTF_BASE, RED_LED_GPIO , toogle);
 
             CPU_enableInterrupts();
         }
     }
 }
 
-static void blue_led_InitHW(void)
+static void red_led_InitHW(void)
 {
     // Enable PORT for segments gate clock
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
@@ -83,10 +82,11 @@ static void blue_led_InitHW(void)
     }
 
     // Enable PORT pins as Output
-    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, BLUE_LED_GPIO);
+    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, RED_LED_GPIO);
 
     // Write all PINS low
-    GPIOPinWrite(GPIO_PORTF_BASE, BLUE_LED_GPIO, 0x00);
+    GPIOPinWrite(GPIO_PORTF_BASE, RED_LED_GPIO, 0x00);
 
 }
+
 

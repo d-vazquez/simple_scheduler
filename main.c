@@ -32,6 +32,7 @@
 #include "cpu_tiva.h"
 #include "threading.h"
 #include "blue_led_task.h"
+#include "red_led_task.h"
 
 
 int main(void)
@@ -43,10 +44,15 @@ int main(void)
 
     Scheduler_Init();
 
-    Scheduler_Task_Create(  BLUE_LED_TASK_NAME,
-                            blue_led_Task,
-                            blue_led_task_stack,
-                            BLUE_LED_TASK_STACK_SIZE);
+    Scheduler_Task_Create(BLUE_LED_TASK_NAME,
+                          blue_led_Task,
+                          blue_led_task_stack,
+                          BLUE_LED_TASK_STACK_SIZE);
+
+    Scheduler_Task_Create(RED_LED_TASK_NAME,
+                          red_led_Task,
+                          red_led_task_stack,
+                          RED_LED_TASK_STACK_SIZE);
 
     Scheduler_Start(); // start the thread switching (this does not return)
 
