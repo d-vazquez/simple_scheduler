@@ -33,6 +33,8 @@
 #include "threading.h"
 #include "blue_led_task.h"
 #include "red_led_task.h"
+#include "lcd_task.h"
+#include "an_in_task.h"
 
 
 int main(void)
@@ -53,6 +55,16 @@ int main(void)
                           red_led_Task,
                           red_led_task_stack,
                           RED_LED_TASK_STACK_SIZE);
+
+    Scheduler_Task_Create(AN_IN_TASK_NAME,
+                              an_in_Task,
+                              an_in_task_stack,
+                              AN_IN_TASK_STACK_SIZE);
+
+    Scheduler_Task_Create(LCD_TASK_NAME,
+                          lcd_Task,
+                          lcd_task_stack,
+                          LCD_TASK_STACK_SIZE);
 
     Scheduler_Start(); // start the thread switching (this does not return)
 
