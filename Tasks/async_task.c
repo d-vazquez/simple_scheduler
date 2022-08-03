@@ -9,24 +9,22 @@
 #include "inc/hw_sysctl.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
-#include "adc_tiva.h"
-
-extern TCB_Type *async_task_tcb;
+#include "async_task.h"
 
 //*****************************************************************************
 //
 // Definitions
 //
 //*****************************************************************************
-#define TASK_PERIOD     10
-#define SWITCH_GPIO    GPIO_PIN_6
+#define TASK_PERIOD     1
+#define ASYNC_LED_GPIO    GPIO_PIN_7
 
 //*****************************************************************************
 //
 // Internal functions
 //
 //*****************************************************************************
-static void switch_InitHW(void);
+static void async_InitHW(void);
 
 
 //*****************************************************************************
@@ -41,9 +39,6 @@ static void switch_InitHW(void);
 // Internal memory (variables)
 //
 //*****************************************************************************
-static uint16_t potentiometer_percent = 0;
-static uint16_t potentiometer_raw = 0;
-static uint16_t switch_value_raw = 0;
 
 
 //*****************************************************************************
@@ -51,12 +46,9 @@ static uint16_t switch_value_raw = 0;
 // Functions
 //
 //*****************************************************************************
-void an_in_Task()
+void async_Task()
 {
-    // Init ADC module
-    InitADC0();
-    switch_InitHW();
-
+    async_InitHW();
     uint64_t current_tick = get_Scheduler_TickCount();
     uint64_t timeout_tick = get_Scheduler_TickCount() + TASK_PERIOD;
 
@@ -68,44 +60,16 @@ void an_in_Task()
             // toggle the blue led
             timeout_tick = current_tick + TASK_PERIOD;
 
-            // critical section
-            CPU_disableInterrupts();
+            // toggle led
+            uint32_t toogle = (GPIOPinRead(GPIO_PORTA_BASE, ASYNC_LED_GPIO)) ? 0x00 : ASYNC_LED_GPIO;
+            GPIOPinWrite(GPIO_PORTA_BASE, ASYNC_LED_GPIO , toogle);
 
-            // get adc value
-            ADCReadPercent(&potentiometer_raw);
-            // read switch
-            switch_value_raw = GPIOPinRead(GPIO_PORTA_BASE, SWITCH_GPIO);
-
-            CPU_enableInterrupts();
-
-            // Convert percent (adc is 12bit, so read value divided by 2^12 - 1, by 100 for percent)
-            potentiometer_percent = (uint32_t)(potentiometer_raw / 40.950f);
-
-            // switch pressed
-            if(!switch_value_raw)
-            {
-                // DEBOUNCE
-                Scheduler_Task_Wait(100);
-
-                CPU_disableInterrupts();
-                switch_value_raw = GPIOPinRead(GPIO_PORTA_BASE, SWITCH_GPIO);
-                CPU_enableInterrupts();
-
-                if(!switch_value_raw)
-                {
-                    Scheduler_Task_Active(async_task_tcb);
-                }
-            }
+            Scheduler_Task_Suspend(async_task_tcb);
         }
     }
 }
 
-uint16_t getPotPercent()
-{
-    return potentiometer_percent;
-}
-
-static void switch_InitHW(void)
+void async_InitHW()
 {
     // Enable PORT for segments gate clock
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -115,5 +79,7 @@ static void switch_InitHW(void)
     {
     }
 
-    GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, SWITCH_GPIO);
+    GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, ASYNC_LED_GPIO);
+    GPIOPinWrite(GPIO_PORTA_BASE, ASYNC_LED_GPIO, 0x00);
 }
+
