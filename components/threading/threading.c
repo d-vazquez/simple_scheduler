@@ -32,19 +32,6 @@ static void     Scheduler_Tick_EnableInt();
 // Internal variable types
 //
 //*****************************************************************************
-// Task properties
-typedef struct
-{
-    uint32_t *TaskStack; // Stack is always first element
-    void    (*Task )();
-    char     *identifier;
-    uint32_t Attributes0;
-    uint32_t Attributes1;
-    uint32_t Attributes2;
-    uint32_t Attributes3;
-    uint32_t Attributes4;
-} TCB_Type;
-
 // Scheduler properties
 typedef struct
 {
@@ -92,22 +79,35 @@ void Scheduler_Init()
     Scheduler_Task_Create(  IDLE_TASK_NAME,
                             idle_Task,
                             idle_task_stack,
-                            IDLE_TASK_STACK_SIZE);
+                            IDLE_TASK_STACK_SIZE,
+                            TASK_ACTIVE);
 }
 
 
-void Scheduler_Task_Create(char* identifier, void (*fTask )(), uint32_t *TaskStack, uint32_t StackSize)
+TCB_Type *Scheduler_Task_Create(char* identifier,
+                           void (*fTask )(),
+                           uint32_t *TaskStack,
+                           uint32_t StackSize,
+                           TASK_STATUS task_status)
 {
+    TCB_Type *current_TCB;
+
     ENTER_CRITICAL_SECTION
 
     // Check we are not our of Thread count
     if (scheduler.TaskCount < MAX_THREADS)
     {
+        // get current tcb to return
+        current_TCB = &scheduler.TCB[scheduler.TaskCount];
+
         // Pass task name
         scheduler.TCB[scheduler.TaskCount].identifier = identifier;
 
         // Assign task function to TCB
         scheduler.TCB[scheduler.TaskCount].Task = fTask;
+
+        // set the status
+        scheduler.TCB[scheduler.TaskCount].TaskStatus = task_status;
 
         // Initialize thread stack with known values (will initialize with 'STCK')
         // Help us see what stack has been touched
@@ -147,6 +147,8 @@ void Scheduler_Task_Create(char* identifier, void (*fTask )(), uint32_t *TaskSta
     }
 
     EXIT_CRITICAL_SECTION
+
+    return current_TCB;
 }
 
 
@@ -303,9 +305,43 @@ static uint32_t get_Scheduler_currentTask()
 
 static uint32_t get_Scheduler_nextTask()
 {
-    uint32_t next_task = get_Scheduler_currentTask() + 1;
+    uint32_t next_task = get_Scheduler_currentTask();
+
+    // Check if we can run the next task in the list
+    do
+    {
+        // get next task
+        next_task++;
+        // cycle until we get an active task, if greater than count, overflow to 0
+        next_task = (next_task >= scheduler.TaskCount) ? 0 : next_task;
+    // check if its suspended
+    } while (scheduler.TCB[next_task].TaskStatus == TASK_SUSPENDED);
 
     // Cap to max thread
-    return (next_task >= scheduler.TaskCount) ? 0 : next_task ;
+    return next_task;
+}
+
+void Scheduler_Task_Suspend(TCB_Type * task_tcb)
+{
+    ENTER_CRITICAL_SECTION
+    task_tcb->TaskStatus = TASK_SUSPENDED;
+    EXIT_CRITICAL_SECTION
+}
+
+void Scheduler_Task_Active(TCB_Type * task_tcb)
+{
+    ENTER_CRITICAL_SECTION
+    task_tcb->TaskStatus = TASK_ACTIVE;
+    EXIT_CRITICAL_SECTION
+}
+
+void Scheduler_Task_Wait(uint32_t cycles)
+{
+    uint32_t current = get_Scheduler_TickCount();
+    uint32_t timeout = get_Scheduler_TickCount() + cycles;
+    while (current < timeout )
+    {
+        current = get_Scheduler_TickCount();
+    }
 }
 

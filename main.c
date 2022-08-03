@@ -35,7 +35,10 @@
 #include "red_led_task.h"
 #include "lcd_task.h"
 #include "an_in_task.h"
+#include "async_task.h"
 
+// Store a ptr to the async task
+extern TCB_Type *async_task_tcb;
 
 int main(void)
 {
@@ -49,22 +52,32 @@ int main(void)
     Scheduler_Task_Create(BLUE_LED_TASK_NAME,
                           blue_led_Task,
                           blue_led_task_stack,
-                          BLUE_LED_TASK_STACK_SIZE);
+                          BLUE_LED_TASK_STACK_SIZE,
+                          TASK_ACTIVE);
 
     Scheduler_Task_Create(RED_LED_TASK_NAME,
                           red_led_Task,
                           red_led_task_stack,
-                          RED_LED_TASK_STACK_SIZE);
+                          RED_LED_TASK_STACK_SIZE,
+                          TASK_ACTIVE);
 
     Scheduler_Task_Create(AN_IN_TASK_NAME,
-                              an_in_Task,
-                              an_in_task_stack,
-                              AN_IN_TASK_STACK_SIZE);
+                          an_in_Task,
+                          an_in_task_stack,
+                          AN_IN_TASK_STACK_SIZE,
+                          TASK_ACTIVE);
 
     Scheduler_Task_Create(LCD_TASK_NAME,
                           lcd_Task,
                           lcd_task_stack,
-                          LCD_TASK_STACK_SIZE);
+                          LCD_TASK_STACK_SIZE,
+                          TASK_ACTIVE);
+
+    async_task_tcb = Scheduler_Task_Create(ASYNC_TASK_NAME,
+                                           async_Task,
+                                           async_task_stack,
+                                           ASYNC_TASK_STACK_SIZE,
+                                           TASK_SUSPENDED);
 
     Scheduler_Start(); // start the thread switching (this does not return)
 
